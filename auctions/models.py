@@ -11,13 +11,15 @@ class User(AbstractUser):
         return f"{self.first_name} {self.last_name} {self.email}"
 
 
-class Auction(models.Model):
-    pass
-
-
 class Bid(models.Model):
     pass
 
 
 class Comment(models.Model):
     pass
+
+
+class Auction(models.Model):
+    price = models.IntegerField()
+    bids = models.ForeignKey(Bid)
+    

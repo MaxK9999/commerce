@@ -9,7 +9,9 @@ from .models import User, Category, Auction, Image
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    active_listings = Auction.objects.filter(active=True).order_by('-id')
+    context = {'active_listings': active_listings}
+    return render(request, "auctions/index.html", context)
 
 
 @login_required
@@ -30,16 +32,24 @@ def create_listing(request):
         
         title = request.POST.get('title')
         description = request.POST.get('description')
+        valuta = request.POST.get('valuta')
         ask_price = request.POST.get('ask_price')
         
-        listing = Auction(title=title, description=description, ask_price=ask_price, category=category, user=request.user)
+        listing = Auction(
+            title=title, 
+            description=description,
+            valuta=valuta,
+            ask_price=ask_price,
+            category=category,
+            user=request.user)
         listing.save()
         
         images = request.FILES.getlist('images')
         for image in images:
-            new_image = Image(image=image)
+            new_image = Image(img=image)
             new_image.save()
             listing.images.add(new_image)
+                
         
         return redirect('index')
     

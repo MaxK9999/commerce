@@ -2,6 +2,49 @@
 
 {% block body %}
     <h2>Active Listings</h2>
-
-    
+    <ul>
+        {% for listing in active_listings %}
+        <div class="container">
+            <ul>
+                <h3>{{ listing.title }}</h3>
+                <p>{{ listing.category }}</p>
+                <p>{{ listing.description }}</p>
+                <p>Price: {{ listing.valuta }}{{ listing.ask_price | floatformat:2 }}</p>
+                {% if listing.images.count > 1 %}
+                <div id="carouselExampleIndicators" class="carousel slide">
+                    <div class="carousel-indicators">
+                        {% for image in listing.images.all %}
+                            <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %} aria-label="Slide {{ forloop.counter }}">
+                            </button>
+                        {% endfor %}
+                    </div>
+                    <div class="carousel-inner">
+                        {% for image in listing.images.all %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                <img src="{{ image.img.url }}" class="d-block w-100" alt="{{ listing.title }}" class="image-listing">
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                </div>
+                {% else %}
+                    <div class="images">
+                        {% for image in listing.images.all %}
+                            <img src="{{ image.img.url }}" alt="{{ listing.title }}" class="image-listing">
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </ul>
+        {% empty %}
+            <p>No active listings available</p>
+        </div>
+        {% endfor %}
+    </ul>
 {% endblock %}

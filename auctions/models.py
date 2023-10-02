@@ -24,12 +24,16 @@ class Category(models.Model):
     
     def __str__(self):
         return self.name
-    
+
+
+class Image(models.Model):
+    img = models.ImageField(upload_to='auction_images/', null=True)
+
 
 class Auction(models.Model):
     title = models.CharField(max_length=40, null=True)
     description = models.CharField(max_length=500, null=True)
-    img = models.ImageField(upload_to='auction_images/')
+    images = models.ManyToManyField(Image)
     ask_price = models.FloatField(default=0.00)  
     active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE,  blank=True, null=True, related_name='user')

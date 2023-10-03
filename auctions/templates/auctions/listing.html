@@ -1,0 +1,36 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+    <h1>Listing: {{ listing.title }}</h1>
+    <br><br>
+        <h3>Category: {{ listing.category }}</h3>
+        {% for image in images %}
+            <img src="{{ image.img.url}}" alt="{{ listing.title }}" class="image-listing">
+        {% endfor %}
+        <br><br>
+        <p>{{ listing.description }}</p>
+        <p class="price">{{ listing.valuta }}{{ listing.ask_price | floatformat:2 }}</p>
+        <p> {{listing.bids.count }} bid(s) so far.</p>
+
+        <form action="{% url 'place_bid' listing.id %}" method="POST">
+            {% csrf_token %}
+            <label for="bid_amount">Place your bid:</label>
+            <input type="number" step="0.01" class="bid-amount" name="bid_amount">
+            <button type="submit">Submit Bid</button>
+        </form>
+    
+    <h2>Comments:</h2>
+        <ul>
+            {% for comment in listing.comments.all %}
+                <li>{{ comment.user.username }}: {{ comment.text }}</li>
+            {% empty %}
+                <li>No comments yet.</li>
+            {% endfor %}
+        </ul>
+        <form action="{% url 'add_comment' listing.id %}" method="POST">
+            {% csrf_token %}
+            <label for="comment_text">Add Comment:</label>
+            <textarea name="comment_text" cols="30" rows="4" placeholder="Ask seller anything about listing..."></textarea>
+            <button type="submit">Post Comment</button>
+        </form>
+{% endblock  %}

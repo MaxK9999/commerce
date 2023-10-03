@@ -3,13 +3,14 @@
 {% block body %}
     <h2>Active Listings</h2>
     <ul>
-        {% for listing in active_listings %}
         <div class="container">
-            <ul>
+        {% for listing in active_listings %}
+            <div class="listing">
+                <a href="{% url 'listing' listing.id %}">
                 <h3>{{ listing.title }}</h3>
-                <p>{{ listing.category }}</p>
+                <p>Category: {{ listing.category }}</p>
                 <p>{{ listing.description }}</p>
-                <p>Price: {{ listing.valuta }}{{ listing.ask_price | floatformat:2 }}</p>
+                <p class="price">Price: {{ listing.valuta }}{{ listing.ask_price | floatformat:2 }}</p>
                 {% if listing.images.count > 1 %}
                 <div id="carouselExampleIndicators" class="carousel slide">
                     <div class="carousel-indicators">
@@ -41,10 +42,11 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-            </ul>
-        {% empty %}
-            <p>No active listings available</p>
+                </div>
+                </a>
+            {% empty %}
+                <p>No active listings available</p>
+            {% endfor %}
         </div>
-        {% endfor %}
     </ul>
 {% endblock %}

@@ -118,6 +118,20 @@ def listing(request, listing_id):
     })
     
 
+@login_required
+def add_watchlist(request, auction_id):
+    auction = Auction.objects.get(pk=auction_id)
+    user = request.user
+    
+    if auction in user.watchlist.all():
+        user.watchlist.remove(auction)
+    else:
+        user.watchlist.add(auction)
+    
+    return redirect('watchlist', auction_id=auction_id)
+    
+
+@login_required
 def place_bid(request, listing_id):
     if request.method == "POST":
         listing = get_object_or_404(Auction, id=listing_id)
@@ -133,6 +147,7 @@ def place_bid(request, listing_id):
         return redirect('listing', listing_id=listing_id)
     
 
+@login_required
 def add_comment(request, listing_id):
     if request.method == "POST":
         listing = get_object_or_404(Auction, id=listing_id)

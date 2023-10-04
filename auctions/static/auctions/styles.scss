@@ -2,15 +2,18 @@ body {
     padding: 20px;
     background-color: rgb(255, 237, 213);
     font-family: Arial, Helvetica, sans-serif;
+    overflow-x: hidden;
 }
 
 .container {
-    margin-left: 10%;
+    margin-left: 2vw;
     background-color: aliceblue;
     padding: 30px;
     border: 1px solid black;
     display: flex;
     flex-direction: column;
+    min-width: fit-content;
+    max-width: 85vw;
     
     .listing {
         padding: 50px;
@@ -38,10 +41,9 @@ body {
             font-weight: 700;
         }
     }
-
     .image-listing {
-        max-width: 700px;
-        max-height: 550px;
+        max-width: 40vw;
+        max-height: 50vh;
         border: 0.5px solid black;
     }
 }

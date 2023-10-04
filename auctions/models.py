@@ -6,7 +6,7 @@ from django.utils import timezone
 class User(AbstractUser):
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
-    email = models.EmailField(max_length=254)
+    email = models.EmailField(max_length=254) 
     
     def __str__(self):
         return f"{self.first_name} {self.last_name} {self.email}"
@@ -35,6 +35,7 @@ class Auction(models.Model):
     active = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE,  blank=True, null=True, related_name='user')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True, related_name='category')
+    watchlist = models.ManyToManyField(User, related_name='watchlist', blank=True)
     
     def __str__(self):
         return self.title

@@ -11,7 +11,14 @@ from .models import User, Category, Auction, Image, Bid, Comment
 
 def index(request):
     active_listings = Auction.objects.filter(active=True).order_by('-id')
-    context = {'active_listings': active_listings}
+    watchlisted_auctions = []
+    if request.user.is_authenticated:
+        watchlisted_auctions = request.user.watchlist.all()
+    context = {
+        'active_listings': active_listings,
+        'watchlisted_auctions': watchlisted_auctions,
+        }
+    
     return render(request, "auctions/index.html", context)
     
 
@@ -71,7 +78,11 @@ def register(request):
 def create_listing(request):
     if request.method == "GET":
         categories = Category.objects.all()
-        context = {'categories': categories}
+        watchlisted_auctions = request.user.watchlist.all()
+        context = {
+            'categories': categories,
+            'watchlisted_auctions': watchlisted_auctions,
+            }
         return render(request, "auctions/create_listing.html", context)
     
     elif request.method == "POST":
@@ -111,16 +122,20 @@ def listing(request, listing_id):
     listing_details = get_object_or_404(Auction, id=listing_id)
     images = listing_details.images.all()
     comments = listing_details.comments.all()
+    watchlisted_auctions = []
+    if request.user.is_authenticated:
+        watchlisted_auctions = request.user.watchlist.all()
     return render(request, "auctions/listing.html", {
         'listing': listing_details,
         'images': images,
         'comments': comments,
+        'watchlisted_auctions': watchlisted_auctions,
     })
     
 
 @login_required
-def add_watchlist(request, auction_id):
-    auction = Auction.objects.get(pk=auction_id)
+def watchlist(request, listing_id):
+    auction = Auction.objects.get(pk=listing_id)
     user = request.user
     
     if auction in user.watchlist.all():
@@ -128,15 +143,46 @@ def add_watchlist(request, auction_id):
     else:
         user.watchlist.add(auction)
     
-    return redirect('watchlist', auction_id=auction_id)
+    return redirect('listing', listing_id=listing_id)
     
+
+@login_required
+def watchlist_page(request):
+    watchlisted_auctions = request.user.watchlist.all()
+    return render(request, 'auctions/watchlist.html', {
+        'watchlisted_auctions': watchlisted_auctions
+    })
+
+
+@login_required
+def watchlist_count(request):
+    watchlisted_auctions = request.user.watchlist.all()
+    return {
+        'watchlisted_auctions': watchlisted_auctions
+    }
+
 
 @login_required
 def place_bid(request, listing_id):
     if request.method == "POST":
         listing = get_object_or_404(Auction, id=listing_id)
-        bid_amount = request.POST.get('bid_amount')
+        bid_amount = float(request.POST.get('bid_amount'))
         
+        
+        if bid_amount < listing.ask_price:
+            return render(request, 'auctions/listing.html', {
+                'listing':listing,
+                'message':"Your bid must be higher than the current highest bid.",
+            })
+        
+        highest_bid = listing.bids.aggregate(Max('amount'))['amount__max']
+        
+        if highest_bid is not None and bid_amount <= highest_bid:
+            return render(request, 'auctions/listing.html', {
+                'listing': listing,
+                'error_message': "Your bid must be higher than the current highest bid.",
+            })
+            
         new_bid = Bid(
             user=request.user,
             listing=listing,
@@ -144,11 +190,17 @@ def place_bid(request, listing_id):
         )
         new_bid.save()
         
-        return redirect('listing', listing_id=listing_id)
+        listing.current_bid = bid_amount
+        listing.save()
+        
+        return redirect(request, 'auctions/listing.html', {
+            'listing': listing, 
+            'highest_bid': highest_bid,
+        })
     
 
 @login_required
-def add_comment(request, listing_id):
+def add_comment(request, listing_id):    
     if request.method == "POST":
         listing = get_object_or_404(Auction, id=listing_id)
         comment_text = request.POST.get('comment_text')

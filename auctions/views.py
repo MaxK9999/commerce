@@ -5,6 +5,7 @@ from django.db.models import Max, Count
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.utils import timezone
 
 from .models import User, Category, Auction, Image, Bid, Comment
 
@@ -105,7 +106,7 @@ def create_listing(request):
             valuta=valuta,
             ask_price=ask_price,
             category=category,
-            user=request.user),
+            user=request.user)
         listing.save()
         
         images = request.FILES.getlist('images')
@@ -116,6 +117,44 @@ def create_listing(request):
                 
         
         return redirect('index')
+    
+    
+@login_required
+def close_listing(request, listing_id):
+    listing = get_object_or_404(Auction, id=listing_id)
+    
+    if request.user == listing.user:
+        if listing.bids.count() > 0:
+            highest_bid = listing.bids.order_by('-amount').first()
+            highest_bid.is_winner = True
+            highest_bid.save()
+            
+        listing.active = False
+        listing.closed_at = timezone.now()
+        listing.save()
+        
+        closed_listings = Auction.objects.filter(active=False).order_by('-closed_at')
+        watchlisted_auctions = request.user.watchlist.all()
+        
+        return render(request, 'auctions/previous_auctions.html', {
+            'closed_listings': closed_listings,
+            'winner': highest_bid.user,
+            'watchlisted_auctions': watchlisted_auctions
+        })
+    return render(request, 'auctions/index.html', {
+        'listing': listing,
+    })
+
+
+def previous_auctions(request):
+    closed_listings = Auction.objects.filter(active=False).order_by('-closed_at')
+    watchlisted_auctions = []
+    if request.user.is_authenticated:
+        watchlisted_auctions = request.user.watchlist.all()    
+    return render(request, "auctions/previous_auctions.html", {
+        'closed_listings': closed_listings,
+        'watchlisted_auctions': watchlisted_auctions,
+    })
     
     
 def listing(request, listing_id):
@@ -168,6 +207,8 @@ def place_bid(request, listing_id):
         listing = get_object_or_404(Auction, id=listing_id)
         bid_amount = float(request.POST.get('bid_amount'))
         highest_bid = listing.bids.aggregate(Max('amount'))['amount__max']
+        watchlisted_auctions = request.user.watchlist.all()
+        images = listing.images.all()
         
         if highest_bid is None or bid_amount > highest_bid:
             bid = Bid(user=request.user, listing=listing, amount=bid_amount)
@@ -175,7 +216,17 @@ def place_bid(request, listing_id):
             listing.current_bid = bid_amount
             listing.save()
         else:
-            return redirect('listing', listing_id=listing_id)
+            watchlisted_auctions = request.user.watchlist.all()
+            return render(request, 'auctions/listing.html', {
+                'listing': listing,
+                'watchlisted_auctions': watchlisted_auctions,
+                'images': images,
+            })
+    return render(request, 'auctions/listing.html', {
+        'listing': listing,
+        'watchlisted_auctions': watchlisted_auctions,
+        'images': images,
+    })              
     
 
 @login_required
@@ -192,4 +243,3 @@ def add_comment(request, listing_id):
         new_comment.save()
         
         return redirect('listing', listing_id=listing_id)
-    

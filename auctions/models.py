@@ -37,6 +37,13 @@ class Auction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE,  blank=True, null=True, related_name='user')
     category = models.ForeignKey(Category, on_delete=models.CASCADE, blank=True, null=True, related_name='category')
     watchlist = models.ManyToManyField(User, related_name='watchlist', blank=True, null=True)
+    winner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_auctions')
+    closed_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
+    
+    def close(self):
+        self.active =False
+        self.closed_at = timezone.now()
+        self.save()
     
     def __str__(self):
         return self.title
@@ -47,6 +54,7 @@ class Bid(models.Model):
     listing = models.ForeignKey(Auction, on_delete=models.CASCADE, related_name='bids', null=True)
     amount = models.DecimalField(default=0.00, decimal_places=2, max_digits=10)
     timestamp = models.DateTimeField(default=timezone.now)
+    is_winner = models.BooleanField(default=False)
     
     def __str__(self):
         return f"{self.user.username} has placed a bid of {self.listing.valuta}{self.amount} on {self.listing.title}!"

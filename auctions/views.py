@@ -167,36 +167,15 @@ def place_bid(request, listing_id):
     if request.method == "POST":
         listing = get_object_or_404(Auction, id=listing_id)
         bid_amount = float(request.POST.get('bid_amount'))
-        
-        
-        if bid_amount < listing.ask_price:
-            return render(request, 'auctions/listing.html', {
-                'listing':listing,
-                'message':"Your bid must be higher than the current highest bid.",
-            })
-        
         highest_bid = listing.bids.aggregate(Max('amount'))['amount__max']
         
-        if highest_bid is not None and bid_amount <= highest_bid:
-            return render(request, 'auctions/listing.html', {
-                'listing': listing,
-                'error_message': "Your bid must be higher than the current highest bid.",
-            })
-            
-        new_bid = Bid(
-            user=request.user,
-            listing=listing,
-            amount=bid_amount,
-        )
-        new_bid.save()
-        
-        listing.current_bid = bid_amount
-        listing.save()
-        
-        return redirect(request, 'auctions/listing.html', {
-            'listing': listing, 
-            'highest_bid': highest_bid,
-        })
+        if highest_bid is None or bid_amount > highest_bid:
+            bid = Bid(user=request.user, listing=listing, amount=bid_amount)
+            bid.save()
+            listing.current_bid = bid_amount
+            listing.save()
+        else:
+            return redirect('listing', listing_id=listing_id)
     
 
 @login_required

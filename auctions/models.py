@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import Max
 from django.utils import timezone
 
 
@@ -39,7 +40,7 @@ class Auction(models.Model):
     watchlist = models.ManyToManyField(User, related_name='watchlist', blank=True, null=True)
     winner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='won_auctions')
     closed_at = models.DateTimeField(null=True, blank=True, auto_now_add=True)
-    
+        
     def close(self):
         self.active =False
         self.closed_at = timezone.now()

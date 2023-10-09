@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
@@ -8,7 +9,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import User, Category, Auction, Image, Bid, Comment
-
+    
 
 def index(request):
     active_listings = Auction.objects.filter(active=True).order_by('-id')
@@ -36,9 +37,8 @@ def login_view(request):
             login(request, user)
             return HttpResponseRedirect(reverse("index"))
         else:
-            return render(request, "auctions/login.html", {
-                "message": "Invalid username and/or password.",
-            })
+            messages.error(request, "Username or password is incorrect.")
+            return render(request, "auctions/login.html")
     else:
         return render(request, "auctions/login.html")
 
@@ -57,19 +57,19 @@ def register(request):
         password = request.POST["password"]
         confirmation = request.POST["confirmation"]
         if password != confirmation:
-            return render(request, "auctions/register.html", {
-                "message": "Passwords must match.",
-            })
+            messages.error(request, "Passwords must match!")
+            return render(request, "auctions/register.html")
 
         # Attempt to create new user
         try:
             user = User.objects.create_user(username, email, password)
             user.save()
         except IntegrityError:
-            return render(request, "auctions/register.html", {
-                "message": "Username already taken."
-            })
+            messages.error(request, "Username already taken.")
+            return render(request, "auctions/register.html")
+        
         login(request, user)
+        messages.success(request, "Registration succesfull.")
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
@@ -100,6 +100,10 @@ def create_listing(request):
         valuta = request.POST.get('valuta')
         ask_price = request.POST.get('ask_price')
         
+        if not title or not description or not valuta or not ask_price:
+            messages.error(request, "All fields are required.")
+            return redirect('create_listing')
+        
         listing = Auction(
             title=title, 
             description=description,
@@ -115,7 +119,7 @@ def create_listing(request):
             new_image.save()
             listing.images.add(new_image)
                 
-        
+        messages.success(request, "Listing created succesfully!")
         return redirect('index')
     
     
@@ -224,9 +228,13 @@ def place_bid(request, listing_id):
             listing.current_bid = bid_amount
             listing.save()
             highest_bid = bid_amount
+            
+            messages.success(request, "Bid placed succesfully!")
             return redirect('listing', listing_id=listing_id)
         
         elif bid_amount < listing.ask_price or bid_amount <= highest_bid:
+            
+            messages.error(request, "Invalid bid amount.")
             return redirect('listing', listing_id=listing_id)
 
     return render(request, 'auctions/listing.html', {
@@ -250,16 +258,27 @@ def add_comment(request, listing_id):
         )
         new_comment.save()
         
+        messages.success(request, "Your comment has been placed!")
         return redirect('listing', listing_id=listing_id)
     
-    
+
 def categories(request):
-    selected_category = request.GET.get('category', '')
-    if selected_category:
-        filtered_listings = Auction.objects.filter(category__name=selected_category)
+    category_name = request.POST.get('category', '')
+    categories = Category.objects.all()
+    watchlisted_auctions = request.user.watchlist.all()
+    
+    if category_name:
+        try:
+            category = Category.objects.get(name=category_name)
+            listings = Auction.objects.filter(category=category, active=True)
+        except Category.DoesNotExist:
+            listings = []
     else:
-        filtered_listings = Auction.objects.all()
-        
-    return render(request, 'auctions/categories.html', {
-        'listings': filtered_listings,
+        listings = Auction.objects.filter(active=True)
+                
+    return render(request, "auctions/categories.html", {
+        'listings': listings,
+        'categories': categories,
+        'selected_category': category_name,
+        'watchlisted_auctions': watchlisted_auctions,
     })

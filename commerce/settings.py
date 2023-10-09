@@ -126,3 +126,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'auctions/static')
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.ERROR: 'alert-danger',
+    messages.WARNING: 'alert-warning',
+    messages.SUCCESS: 'alert-success',
+    messages.INFO: 'alert-info',
+}

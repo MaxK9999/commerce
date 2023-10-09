@@ -2,6 +2,16 @@
 
 {% block body %}
     <h2>Create New Listing</h2>
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {{ message.tags }} m-2" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <form action="{% url 'create_listing' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="container">
@@ -43,7 +53,7 @@
             <label for="formFileMultiple" name="images" class="form-label">Choose one or multiple pictures for your listing:</label>
             <input class="form-control" type="file" name="images" id="formFileMultiple" multiple>
         </div>
+        <button type="submit" class="btn btn-primary">Create New Listing!</button>
     </div>
-    <button type="submit">Create New Listing!</button>
     </form>
 {% endblock %}

@@ -29,7 +29,7 @@
     {% if user.is_authenticated and user == listing.user and listing.active %}
         <form action="{% url 'close_listing' listing.id %}" method="POST">
             {% csrf_token %}
-            <button type="submit">Close Auction</button>
+            <button type="submit" class="btn btn-warning">Close Auction</button>
         </form>
     {% endif %}
 
@@ -55,7 +55,7 @@
                     {% csrf_token %}
                     <label for="bid_amount">Place your bid:</label>
                     <input type="number" step="0.01" class="bid-amount" name="bid_amount">
-                    <button type="submit">Submit Bid</button>
+                    <button type="submit" class="btn btn-success">Submit Bid</button>
                 </form>
             {% endif %}
         {% else %}
@@ -80,9 +80,10 @@
             <form action="{% url 'add_comment' listing.id %}" method="POST">
                 {% csrf_token %}
                 <label for="comment_text">Add Comment:</label>
-                <br><br>
+                <br>
                 <textarea name="comment_text" cols="30" rows="4" placeholder="Ask seller anything about listing..."></textarea>
-                <button type="submit">Post Comment</button>
+                
+            <button type="submit" class="btn btn-primary">Post Comment</button>
             </form>
         </div>
         {% endif %}

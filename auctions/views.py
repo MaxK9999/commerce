@@ -222,27 +222,19 @@ def place_bid(request, listing_id):
         watchlisted_auctions = request.user.watchlist.all()
         images = listing.images.all()
         
-        if highest_bid is None or bid_amount > highest_bid:
+        if (highest_bid is None or bid_amount > highest_bid) and bid_amount >= listing.ask_price:
             bid = Bid(user=request.user, listing=listing, amount=bid_amount)
             bid.save()
             listing.current_bid = bid_amount
             listing.save()
             highest_bid = bid_amount
             
-            messages.success(request, "Bid placed succesfully!")
-            return redirect('listing', listing_id=listing_id)
-        
-        elif bid_amount < listing.ask_price or bid_amount <= highest_bid:
-            
+            messages.success(request, "Bid placed successfully!")
+        else:
             messages.error(request, "Invalid bid amount.")
-            return redirect('listing', listing_id=listing_id)
-
-    return render(request, 'auctions/listing.html', {
-        'listing': listing,
-        'watchlisted_auctions': watchlisted_auctions,
-        'images': images,
-        'highest_bid': highest_bid,
-    })              
+        
+    return redirect('listing', listing_id=listing_id)
+          
     
 
 @login_required
@@ -251,34 +243,45 @@ def add_comment(request, listing_id):
         listing = get_object_or_404(Auction, id=listing_id)
         comment_text = request.POST.get('comment_text')
         
-        new_comment = Comment(
-            user=request.user,
-            listing=listing,
-            text=comment_text,
-        )
-        new_comment.save()
-        
-        messages.success(request, "Your comment has been placed!")
+        if len(comment_text.strip()) == 0:
+            messages.error(request, "Comment must have at least 1 character.")
+        else:    
+            new_comment = Comment(
+                user=request.user,
+                listing=listing,
+                text=comment_text,
+            )
+            new_comment.save()
+            messages.success(request, "Your comment has been placed!")
+            
         return redirect('listing', listing_id=listing_id)
     
 
 def categories(request):
     category_name = request.POST.get('category', '')
     categories = Category.objects.all()
-    watchlisted_auctions = request.user.watchlist.all()
-    
-    if category_name:
-        try:
-            category = Category.objects.get(name=category_name)
-            listings = Auction.objects.filter(category=category, active=True)
-        except Category.DoesNotExist:
-            listings = []
+    listings = []
+
+    if request.user.is_authenticated:
+        watchlisted_auctions = request.user.watchlist.all()
+
+        if category_name:
+            try:
+                category = Category.objects.get(name=category_name)
+                listings = Auction.objects.filter(category=category, active=True)
+            except Category.DoesNotExist:
+                listings = Auction.objects.filter(active=True)
     else:
-        listings = Auction.objects.filter(active=True)
-                
+        if category_name:
+            try:
+                category = Category.objects.get(name=category_name)
+                listings = Auction.objects.filter(category=category, active=True)
+            except Category.DoesNotExist:
+                listings = Auction.objects.filter(active=True)
+
     return render(request, "auctions/categories.html", {
         'listings': listings,
         'categories': categories,
         'selected_category': category_name,
-        'watchlisted_auctions': watchlisted_auctions,
+        'watchlisted_auctions': watchlisted_auctions if request.user.is_authenticated else [],
     })

@@ -39,10 +39,15 @@ body {
   font-size: 18px;
   font-weight: 700;
 }
+.container #carouselExampleIndicators {
+  max-width: 30vw;
+  max-height: 40vw;
+  border: 1px solid black;
+}
 .container .image-listing {
-  max-width: 40vw;
-  max-height: 50vh;
-  border: 0.5px solid black;
+  max-width: 30vw;
+  max-height: 40vw;
+  border: 1px solid black;
 }
 .container button {
   margin-top: 15px;
@@ -59,11 +64,11 @@ body {
 .container .wrapper input {
   padding: 4px;
   border: 0.1px solid rgb(167, 163, 163);
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.6);
 }
 .container .wrapper textarea {
   padding: 10px;
-  background-color: transparent;
+  background-color: rgba(255, 255, 255, 0.6);
 }
 
 .price {
@@ -114,6 +119,7 @@ select option {
 .container-comments .comment2 {
   display: flex;
   flex-direction: column;
+  flex-basis: 45%;
 }
 .container-comments .comment2 form {
   width: 100%;
@@ -125,4 +131,14 @@ select option {
 .container-comments .comment2 button {
   margin-top: 5px;
   display: block;
+}
+
+.form-control {
+  min-width: 20vw;
+  max-width: 400px;
+  margin-top: 10px;
+}
+
+#login {
+  margin-top: 15px;
 }/*# sourceMappingURL=styles.css.map */

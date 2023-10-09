@@ -15,22 +15,23 @@
     </form>
 
     {% if selected_category %}
+    <br><br>
         <h3>{{ selected_category }}</h3>
         <ul>
-            {% for listing in listings %}
-                <li>
-                    <div class="container">
-                        <div class="listing">
-                            <a href="{% url 'listing' listing.id %}">
-                                <h5>{{ listing.title }}</h5>
-                                <p>{{ listing.description }}</p>
-                                <p>Ask Price: {{ listing.valuta }}{{ listing.ask_price | floatformat:2 }}</p>
-                                <p></p>
-                            </a>
-                        </div>
+            <div class="container">
+                {% for listing in listings %}
+                    <div class="listing">
+                        <a href="{% url 'listing' listing.id %}">
+                            <h5>{{ listing.title }}</h5>
+                            <p>{{ listing.description }}</p>
+                            <p>Ask Price: {{ listing.valuta }}{{ listing.ask_price | floatformat:2 }}</p>
+                            <p></p>
+                        </a>
                     </div>
-                </li>
-            {% endfor %}
+                {% empty %}
+                    <h3>No active listings in this category available</h3>
+                {% endfor %}
+            </div>
         </ul>
     {% endif %}
 {% endblock  %}

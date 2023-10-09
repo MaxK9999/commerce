@@ -4,9 +4,15 @@
 
     <h2>Login</h2>
 
-    {% if message %}
-        <div>{{ message }}</div>
-    {% endif %}
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="alert {{ message.tags }} m-2" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}    
 
     <form action="{% url 'login' %}" method="post">
         {% csrf_token %}
@@ -16,7 +22,7 @@
         <div class="form-group">
             <input class="form-control" type="password" name="password" placeholder="Password">
         </div>
-        <input class="btn btn-primary" type="submit" value="Login">
+        <input id="login" class="btn btn-primary" type="submit" value="Login">
     </form>
 
     Don't have an account? <a href="{% url 'register' %}">Register here.</a>
